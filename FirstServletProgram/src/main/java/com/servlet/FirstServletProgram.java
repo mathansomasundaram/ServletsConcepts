@@ -19,7 +19,12 @@ public class FirstServletProgram extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 
-
+	@Override
+	public void init() throws ServletException {
+			super.init();
+			System.out.println("Servlet is initialized");
+	}
+	
     public FirstServletProgram() {
         super();
     }

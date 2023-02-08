@@ -4,6 +4,7 @@
  	<servlet>
  		<servlet-name>AddServlet</servlet-name>
  		<servlet-class>com.servlet.FirstServletProgram</servlet-class>
+ 		<load-on-startup>0</load-on-startup>
  	</servlet>
  	
  	<servlet-mapping>
