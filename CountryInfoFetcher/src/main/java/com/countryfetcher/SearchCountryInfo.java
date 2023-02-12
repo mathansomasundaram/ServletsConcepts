@@ -13,11 +13,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.countryfetcher.model.CountryIdentityModel;
+import com.mysql.cj.util.StringUtils;
+
 
 @WebServlet("/SearchCountry")
 public class SearchCountryInfo extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-    private static List<String> countryListFromDB=null;
+	private List<String> countryListFromDB=null;
     
     public SearchCountryInfo() {
         super();
@@ -27,39 +29,62 @@ public class SearchCountryInfo extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		response.setContentType("text/html");
-		
-		HttpSession session=request.getSession();
-		CountryIdentityModel countryDetails=new CountryIdentityModel();
-		PrintWriter out=null;
-		RequestDispatcher rd=null;
-		
-		try {
-			out=response.getWriter();
-		}catch(Exception e) {
-			System.out.println("Exception-->"+e);
-		}
-		
-		String countryName=request.getParameter("countryName");
 
-		if(countryListFromDB==null)
-			countryListFromDB=countryDetails.getTotalCountryList();
+		HttpSession session = request.getSession();
+		CountryIdentityModel countryDetails = new CountryIdentityModel();
+		RequestDispatcher rd = null;
 		
-		session.setAttribute("countryName", countryListFromDB);
-		if(!countryListFromDB.contains(countryName.toUpperCase())) {
-			try {
-				rd = request.getRequestDispatcher("RefreshPage.html");
-				out.print("<div style=\"width: 500px; margin: 0 auto;\">");
-				out.print("<p><h3>Invalid Country Name provided.</h3></p>");
-				out.print("</div>");
+
+		String countryName = request.getParameter("countryName");
+		String displayMessage="";
+		try {
+			if (StringUtils.isNullOrEmpty(countryName)) {
+				rd = request.getRequestDispatcher("index.html");
+				displayMessage="Country Name cannot be Empty.";
+				displayComment(request,response,rd,displayMessage);
 				rd.include(request, response);
-			} catch (Exception e) {
-				e.printStackTrace();
+			} else {
+				if (countryListFromDB == null)
+					countryListFromDB = countryDetails.getTotalCountryList();
+
+				session.setAttribute("countryName", countryListFromDB);
+				if (!countryListFromDB.contains(countryName.toUpperCase())) {
+					rd = request.getRequestDispatcher("RefreshPage.html");
+					displayMessage="Invalid Country Name provided.";
+					displayComment(request,response,rd,displayMessage);
+					rd.include(request, response);
+				} else {
+					rd = request.getRequestDispatcher("DisplayCountryDetails");
+					rd.forward(request, response);
+				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		
-	
+
 	}
+
+	private void displayComment(HttpServletRequest request, HttpServletResponse response, RequestDispatcher rd,String displayMessage) {
+
+		PrintWriter out = null;
+
+		try {
+			out = response.getWriter();
+			out.print("<div style=\"width: 400px;margin: inherit;\">");
+			out.print("<p><h3>"+displayMessage+"</h3></p>");
+			out.print("</div>");
+			rd.include(request, response);
+		} catch (Exception e) {
+			System.out.println("Exception-->" + e);
+		}finally {
+			if(out!=null)
+				out.close();
+		}
+	}
+	
+	
 
 }
